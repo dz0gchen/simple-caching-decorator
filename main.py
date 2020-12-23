@@ -1,7 +1,8 @@
 from typing import Union
 
+
 def cache(f, limit=6, cache={}):
-    def decorate(*args):
+    def decorate(self, key, value=None):
         if f.__name__ == "set":
             # cache должен быть быстрее bakend-storage;
             # в качестве bakend-storage и cache используем словарь;
@@ -12,13 +13,15 @@ def cache(f, limit=6, cache={}):
             if len(cache) == limit:
                 cache.clear()
                 print("clear cache")
-            cache[args[1]] = args[2]
+            cache[key] = value
             print("load into cache")
+            return f(self, key, value)
         else:
-            if args[1] in cache:
+            val = cache.get(key)
+            if val is not None:
                 print("return from cache")
-                return cache[args[1]]
-        return f(*args)
+                return val
+        return f(self, key)
     return decorate
 
 
@@ -28,6 +31,7 @@ class MyStore(dict):
     """
     @cache
     def set(self, key: Union[int, str], value: Union[int, str]):
+        print("set data to store")
         return dict.__setitem__(self, key, value)
 
     @cache
